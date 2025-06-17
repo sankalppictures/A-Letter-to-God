@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Letter to God Quiz</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Gradient background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbar from background animations */
+        }
+
+        /* Basic animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .animated-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .animated-slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        /* Custom button styles with glow/bubble effect */
+        .quiz-button {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .quiz-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+            z-index: -1;
+        }
+
+        .quiz-button:hover::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        /* Option buttons */
+        .option-button {
+            transition: all 0.2s ease-in-out;
+            background-color: #f3f4f6; /* Light gray */
+            color: #1f2937; /* Dark text */
+        }
+
+        .option-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #e5e7eb; /* Slightly darker on hover */
+        }
+
+        .option-button.selected {
+            background-color: #3b82f6; /* Blue for selected */
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .option-button.correct {
+            background-color: #10b981; /* Green for correct */
+            color: white;
+            border-color: #059669;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+
+        .option-button.incorrect {
+            background-color: #ef4444; /* Red for incorrect */
+            color: white;
+            border-color: #dc2626;
+            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Confetti effect (for results) */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--color);
+            opacity: 0;
+            animation: confetti-fall 3s forwards;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .quiz-container {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            .option-button {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body class="selection:bg-purple-300 selection:text-purple-900">
+    <!-- Quiz Container -->
+    <div id="quiz-container" class="quiz-container bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl text-center animated-fade-in relative z-10 flex flex-col items-center">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="animated-fade-in">
+            <h1 class="text-5xl font-extrabold text-gray-800 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+                A Letter to God
+            </h1>
+            <h2 class="text-3xl font-semibold text-gray-700 mb-8">Quiz Challenge</h2>
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                Test your knowledge on G.L. Fuentes' timeless story! Answer 100 multiple-choice questions and see how well you know Lencho's unwavering faith.
+            </p>
+            <button id="start-button" class="quiz-button bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden w-full animated-fade-in">
+            <div class="flex justify-between items-center mb-6 text-gray-700">
+                <span id="question-counter" class="text-xl font-semibold">Question 1/100</span>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 ml-4 mr-2">
+                    <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%;"></div>
+                </div>
+                <span id="score-display" class="text-xl font-semibold">Score: 0</span>
+            </div>
+
+            <h3 id="question-text" class="text-2xl font-bold text-gray-800 mb-8 leading-snug text-left animated-slide-in">
+                <!-- Question will be loaded here -->
+            </h3>
+
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <!-- Options will be loaded here -->
+            </div>
+
+            <!-- Removed the next button as per user request for auto-advance -->
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden w-full animated-fade-in">
+            <h2 class="text-4xl font-extrabold text-gray-800 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+                Quiz Complete!
+            </h2>
+            <p class="text-xl text-gray-700 mb-6">Your Performance:</p>
+            <div class="mb-8 p-6 bg-gradient-to-br from-indigo-50 to-blue-100 rounded-xl shadow-lg border border-blue-200">
+                <p class="text-3xl font-bold text-gray-800 mb-3">
+                    You scored <span id="final-score" class="text-purple-700 text-5xl">0</span> out of <span id="total-questions" class="text-indigo-700 text-4xl">100</span>!
+                </p>
+                <p id="result-message" class="text-2xl text-gray-600 font-medium"></p>
+            </div>
+            <button id="restart-button" class="quiz-button bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:from-pink-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-pink-300">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data: 100 Questions for 'A Letter to God'
+        const questions = [
+            {
+                question: "What was Lencho's main occupation?",
+                options: ["Farmer", "Postman", "Teacher", "Shopkeeper"],
+                correctAnswer: 0
+            },
+            {
+                question: "Where was Lencho's house situated?",
+                options: ["On the top of a hill", "In a valley", "Near a river", "At the foot of a mountain"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho expect in return for his efforts?",
+                options: ["Money", "A good harvest", "Rain", "A letter from God"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho compare the large raindrops to?",
+                options: ["New coins", "Pearls", "Diamonds", "Silver coins"],
+                correctAnswer: 0
+            },
+            {
+                question: "How did Lencho feel when the hailstones started falling?",
+                options: ["Happy", "Excited", "Sad and worried", "Angry"],
+                correctAnswer: 2
+            },
+            {
+                question: "What was the extent of the damage caused by the hailstones?",
+                options: ["Only a few fields were damaged", "The cornfield was completely destroyed", "The trees lost their leaves", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "What was the only hope left for Lencho's family after the destruction?",
+                options: ["Help from neighbors", "A loan from the bank", "Help from God", "Moving to another village"],
+                correctAnswer: 2
+            },
+            {
+                question: "How many pesos did Lencho ask from God?",
+                options: ["50 pesos", "70 pesos", "100 pesos", "1000 pesos"],
+                correctAnswer: 2
+            },
+            {
+                question: "Who read Lencho's letter first?",
+                options: ["The postmaster", "A postman", "His wife", "His son"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was the postmaster's first reaction after reading the letter?",
+                options: ["He laughed heartily", "He got angry", "He felt sad", "He felt empathetic"],
+                correctAnswer: 0
+            },
+            {
+                question: "What idea did the postmaster come up with to help Lencho?",
+                options: ["To write a letter to God on behalf of Lencho", "To collect money from his employees to help Lencho", "To ignore the letter", "To inform the police"],
+                correctAnswer: 1
+            },
+            {
+                question: "Who contributed money for Lencho's help?",
+                options: ["The postmaster only", "His employees and friends", "Only his friends", "The entire village"],
+                correctAnswer: 1
+            },
+            {
+                question: "How much money could the postmaster gather?",
+                options: ["50 pesos", "70 pesos", "100 pesos", "Less than 50 pesos"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was Lencho's reaction when he received the money?",
+                options: ["He was surprised", "He was thankful", "He was angry", "He was sad"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why was Lencho angry when he counted the money?",
+                options: ["It was less than what he asked for", "He suspected the post office employees", "He thought God had made a mistake", "He didn't need the money anymore"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho call the post office employees?",
+                options: ["Helpful people", "Bunch of crooks", "God's angels", "His saviors"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was the irony in the story 'A Letter to God'?",
+                options: ["Lencho had faith in God but not in people", "The postmaster helped Lencho but was called a crook", "The hailstones destroyed the crop", "All of the above"],
+                correctAnswer: 1
+            },
+            {
+                question: "What does the story highlight about faith?",
+                options: ["It shows that faith can move mountains", "It shows blind faith is dangerous", "It shows that faith can lead to disappointment", "It shows faith only works if you believe in God"],
+                correctAnswer: 0
+            },
+            {
+                question: "What does Lencho's act of writing a second letter show?",
+                options: ["His greed", "His unwavering faith", "His suspicion", "His foolishness"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was the crop growing in Lencho's field?",
+                options: ["Wheat", "Rice", "Corn", "Barley"],
+                correctAnswer: 2
+            },
+            {
+                question: "What could be seen from Lencho's house?",
+                options: ["The river and the fields", "Mountains and forests", "Empty fields", "Not included"],
+                correctAnswer: 0
+            },
+            {
+                question: "What was Lencho's wife doing when it started raining?",
+                options: ["Preparing supper", "Working in the fields", "Playing with the children", "Praying"],
+                correctAnswer: 0
+            },
+            {
+                question: "What were the smaller children told to do?",
+                options: ["Play in the rain", "Work in the fields", "Stay near the house", "Go to school"],
+                correctAnswer: 2
+            },
+            {
+                question: "What was the size of the large raindrops?",
+                options: ["Ten-cent pieces", "Five-cent pieces", "One-cent pieces", "Twenty-five-cent pieces"],
+                correctAnswer: 0
+            },
+            {
+                question: "What was the size of the small raindrops?",
+                options: ["Ten-cent pieces", "Five-cent pieces", "One-cent pieces", "Twenty-five-cent pieces"],
+                correctAnswer: 1
+            },
+            {
+                question: "What came along with the rain?",
+                options: ["Strong winds", "Hailstones", "Lightning", "Dust"],
+                correctAnswer: 1
+            },
+            {
+                question: "How did the field look after the hailstones fell?",
+                options: ["White, as if covered with salt", "Green and lush", "Yellow", "Brown"],
+                correctAnswer: 0
+            },
+            {
+                question: "What was not left on the trees after the hailstones fell?",
+                options: ["Flowers", "Fruits", "Leaves", "Nothing at all"],
+                correctAnswer: 2
+            },
+            {
+                question: "What was in Lencho's heart when everything was destroyed?",
+                options: ["Joy", "Anger", "A solitary sorrow", "Despair"],
+                correctAnswer: 2
+            },
+            {
+                question: "How strong was Lencho's faith in God?",
+                options: ["Weak", "Moderate", "Unshakable", "Non-existent"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho ask for from God in his letter?",
+                options: ["Rain", "Money", "Help", "A new harvest"],
+                correctAnswer: 1
+            },
+            {
+                question: "Where did Lencho post the letter?",
+                options: ["In the village post office", "In the city post office", "Near his house", "Directly to God"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did the postman do when he saw the letter?",
+                options: ["He threw it away", "He read it", "He showed it to the postmaster", "He kept it to himself"],
+                correctAnswer: 2
+            },
+            {
+                question: "What was the postmaster's personality like?",
+                options: ["Angry", "Serious", "Friendly and fat", "Envious"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did the postmaster say after witnessing Lencho's faith?",
+                options: ["'I wish I had such faith!'", "'This is a joke!'", "'This is impossible!'", "'I must help!'"],
+                correctAnswer: 0
+            },
+            {
+                question: "Why did the postmaster decide to collect money?",
+                options: ["To play a trick", "To help Lencho", "To preserve Lencho's faith in God", "To deceive Lencho"],
+                correctAnswer: 2
+            },
+            {
+                question: "How many pesos did the postmaster try to collect?",
+                options: ["50", "70", "100", "Uncertain"],
+                correctAnswer: 2
+            },
+            {
+                question: "How did the postmaster send the money?",
+                options: ["With a note signed 'God'", "With a letter", "In person", "Through the bank"],
+                correctAnswer: 0
+            },
+            {
+                question: "How concerned was Lencho when he received the money?",
+                options: ["Very", "A little", "Not at all", "He was happy"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho think when he counted the money?",
+                options: ["God had deceived him", "The post office employees had stolen money", "He received less money", "God is great"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho ask for to write the second letter?",
+                options: ["Paper and ink", "A stamp", "An envelope", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "What did Lencho tell God in the second letter?",
+                options: ["To send him more money", "Not to send money through the post office employees", "To forgive him", "Not to destroy his crop"],
+                correctAnswer: 1
+            },
+            {
+                question: "Why did Lencho call the post office employees 'a bunch of crooks'?",
+                options: ["Because they stole money", "Because they did not help him", "Because they were dishonest", "Because they did not give him the full amount"],
+                correctAnswer: 3
+            },
+            {
+                question: "What was the 'one hope' in the story?",
+                options: ["Help from the government", "A loan from the bank", "Help from God", "Help from neighbors"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho think for his family when the crop was destroyed?",
+                options: ["They would starve", "They would move to another village", "They would find a new job", "They would pray"],
+                correctAnswer: 0
+            },
+            {
+                question: "What is the main theme of the story?",
+                options: ["Greed", "Faith", "Deception", "Doubt"],
+                correctAnswer: 1
+            },
+            {
+                question: "Why did Lencho decide to send a letter to God?",
+                options: ["He was crazy", "He knew God would help him", "He was too naive", "He was too poor"],
+                correctAnswer: 1
+            },
+            {
+                question: "What filled Lencho's soul when he saw his crop destroyed?",
+                options: ["Joy", "Sorrow", "Hope", "Despair"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did the rain mean for Lencho?",
+                options: ["Trouble", "Destruction", "Money", "Happiness"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why was the postmaster impressed by Lencho's faith?",
+                options: ["Because it was unique", "Because it was so strong", "Because it was in God", "Because he had never seen anything like it"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho's wife say while preparing supper?",
+                options: ["'God willing, it will rain!'", "'God willing, we shall eat!'", "'God willing, everything will be alright!'", "'God willing, we won't starve!'"],
+                correctAnswer: 0
+            },
+            {
+                question: "Why were the hailstones called 'silver coins'?",
+                options: ["Because they were silver in color", "Because they were very valuable", "Because they were destroying the crop", "Because they were falling with the rain"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did the hailstones do for half an hour?",
+                options: ["It rained", "It covered the fields", "It destroyed the crop", "It made it cold"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho say after the storm?",
+                options: ["'This is God's will'", "'A plague of locusts would have left more than this'", "'Our crop is ruined'", "'We will try again next year'"],
+                correctAnswer: 1
+            },
+            {
+                question: "How did Lencho spend his night?",
+                options: ["Peacefully", "Soundly asleep", "Filled with sorrow and concern", "Joyfully"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why did Lencho know God would help him?",
+                options: ["He had a dream", "He was religious", "He had absolute faith in God", "He had no other hope"],
+                correctAnswer: 2
+            },
+            {
+                question: "What kind of knowledge did Lencho possess?",
+                options: ["Farming", "Writing", "Reading", "Animals"],
+                correctAnswer: 1
+            },
+            {
+                question: "When did Lencho write the letter?",
+                options: ["Monday morning", "Sunday morning", "Saturday evening", "Tuesday morning"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho write on the envelope?",
+                options: ["To God", "To Postmaster", "To My Family", "To The Government"],
+                correctAnswer: 0
+            },
+            {
+                question: "How did the postman find the letter?",
+                options: ["In the box", "On the table", "On his shoulder", "On his face"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did the postmaster feel when he saw the letter?",
+                options: ["Laughter", "Concern", "Surprise", "Sadness"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did the postmaster want to do with Lencho?",
+                options: ["Help him", "Ignore him", "Scold him", "Meet him"],
+                correctAnswer: 0
+            },
+            {
+                question: "How strong was Lencho's faith according to the postmaster?",
+                options: ["Weak", "Normal", "Amazing", "Foolish"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did the postmaster vow?",
+                options: ["To give Lencho money", "Not to break Lencho's faith", "To talk to Lencho", "To help Lencho"],
+                correctAnswer: 1
+            },
+            {
+                question: "How did the postmaster gather money?",
+                options: ["From his salary", "From friends and colleagues", "By begging", "By taking a loan from the bank"],
+                correctAnswer: 1
+            },
+            {
+                question: "Was it easy or difficult for the postmaster to gather money?",
+                options: ["Easy", "A little difficult", "Very difficult", "Impossible"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho feel when he counted the money?",
+                options: ["Joy", "Satisfaction", "Anger", "Surprise"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why did Lencho think God had not made a mistake?",
+                options: ["God does not make such mistakes", "God would not deceive him", "He fully trusted God", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "What did Lencho do after writing the second letter?",
+                options: ["Posted it immediately", "Went home", "Caused a commotion at the post office", "Waited for God"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho request from God in the second letter?",
+                options: ["To send more money", "To send money directly next time", "To punish the post office employees", "To return his crop"],
+                correctAnswer: 1
+            },
+            {
+                question: "Which character in the story is opposite to Lencho's faith?",
+                options: ["Lencho's wife", "His children", "The post office employees", "God"],
+                correctAnswer: 2
+            },
+            {
+                question: "Did Lencho ever see God in person?",
+                options: ["Yes", "No", "Not mentioned in the story", "Maybe"],
+                correctAnswer: 2
+            },
+            {
+                question: "What is the moral of the story?",
+                options: ["Greed is bad", "Faith can move mountains", "Truth always wins", "Helping others is good"],
+                correctAnswer: 1
+            },
+            {
+                question: "How hard did Lencho work in the fields?",
+                options: ["Normally", "Less", "Very hard", "Not mentioned"],
+                correctAnswer: 2
+            },
+            {
+                question: "What feeling filled Lencho after the crop destruction?",
+                options: ["Emptiness", "Satisfaction", "Joy", "Surprise"],
+                correctAnswer: 0
+            },
+            {
+                question: "Why did Lencho look towards the sky in the morning?",
+                options: ["Hoping for rain", "To see the sun", "To look at the clouds", "To watch birds"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho say to his wife when he saw the rain?",
+                options: ["'It's money!'", "'It's not really water!'", "'God willing, it's raining!'", "'Now our crop will be saved!'"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho call the hailstones when they were falling?",
+                options: ["'New coins'", "'Frozen pearls'", "'Silver coins'", "'Silver pesos'"],
+                correctAnswer: 1
+            },
+            {
+                question: "How long did the hailstones wreak havoc?",
+                options: ["An hour", "Half an hour", "A few minutes", "All night"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho say to his children when the crop was destroyed?",
+                options: ["'We will starve'", "'We will try again next year'", "'God will help us'", "'It's all over'"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why was Lencho called 'an ox of a man'?",
+                options: ["Because he was strong like an ox", "Because he was very hardworking", "Because he worked with oxen", "Because he was very slow"],
+                correctAnswer: 1
+            },
+            {
+                question: "Where did Lencho go to write the letter?",
+                options: ["Market", "Post office", "School", "Church"],
+                correctAnswer: 1
+            },
+            {
+                question: "Where did Lencho affix the stamp on the letter?",
+                options: ["Top", "Bottom", "Right", "Left"],
+                correctAnswer: 0
+            },
+            {
+                question: "Why did the postmaster become serious after reading the letter?",
+                options: ["He got angry", "He felt pity for Lencho", "He was impressed by Lencho's faith", "He didn't understand"],
+                correctAnswer: 2
+            },
+            {
+                question: "What helped the postmaster gather money?",
+                options: ["His willpower", "His friends and employees", "Lencho's faith", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "Why did the postmaster put money in the envelope?",
+                options: ["So Lencho would think it came from God", "So Lencho would thank him", "So no one else could steal it", "It was a post office rule"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho do at the post office when he received the money?",
+                options: ["He was happy", "He asked for a receipt", "He showed anger", "He gave thanks"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why did Lencho immediately write a second letter?",
+                options: ["He wanted more money", "He suspected the post office", "He was angry at God", "He wanted to file a complaint"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho tell God in the second letter not to do?",
+                options: ["Send less money", "Send money through the mail", "Bless him", "Not help him"],
+                correctAnswer: 1
+            },
+            {
+                question: "Did Lencho ever find out that the postmaster had helped him?",
+                options: ["Yes", "No", "Not mentioned in the story", "Maybe"],
+                correctAnswer: 1
+            },
+            {
+                question: "What is Lencho's greatest quality in the story?",
+                options: ["His greed", "His foolishness", "His unwavering faith", "His poverty"],
+                correctAnswer: 2
+            },
+            {
+                question: "Who is the author of the story 'A Letter to God'?",
+                options: ["G.L. Fuentes", "Ruskin Bond", "Leo Tolstoy", "R.K. Narayan"],
+                correctAnswer: 0
+            },
+            {
+                question: "Where did Lencho live with his wife and children?",
+                options: ["In a village", "In a city", "On a hillside", "Near the field"],
+                correctAnswer: 2
+            },
+            {
+                question: "What was Lencho's wife preparing for the children?",
+                options: ["Vegetables", "Supper", "Pulao", "Lentils"],
+                correctAnswer: 1
+            },
+            {
+                question: "From where did Lencho observe the clouds?",
+                options: ["Towards the south-east", "Towards the north-east", "Towards the south-west", "Towards the north-west"],
+                correctAnswer: 1
+            },
+            {
+                question: "What were the new coins compared to?",
+                options: ["Raindrops", "Hailstones", "Pesos", "Happiness"],
+                correctAnswer: 0
+            },
+            {
+                question: "What color did the hailstones paint Lencho's field?",
+                options: ["White", "Green", "Yellow", "Brown"],
+                correctAnswer: 0
+            },
+            {
+                question: "What emotion was in Lencho's heart when he saw the crop destroyed?",
+                options: ["Profound sadness", "A glimmer of hope", "Anger", "Despair"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho think about for the next year?",
+                options: ["No help", "Only God's help", "Government assistance", "Neighbor's help"],
+                correctAnswer: 1
+            },
+            {
+                question: "Why did Lencho lick the stamp on the letter?",
+                options: ["It was a rule", "It was important", "So it would be secure", "It was for God"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was the postmaster's intention?",
+                options: ["To mock Lencho", "To help Lencho", "To find God", "To ignore Lencho"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did the postmaster ask his employees to do?",
+                options: ["Give money", "Help out", "Keep Lencho's letter a secret", "Talk to Lencho"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did the postmaster sacrifice to collect money?",
+                options: ["His vacation", "A part of his salary", "His time", "His reputation"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho do when he received the money?",
+                options: ["He kept it", "He started counting it", "He threw it away", "He spent it"],
+                correctAnswer: 1
+            },
+            {
+                question: "In whom did Lencho have unwavering faith?",
+                options: ["The post office", "His family", "God", "The government"],
+                correctAnswer: 2
+            },
+            {
+                question: "What is the paradox in the story?",
+                options: ["It rained but the crop was ruined", "God helped but Lencho got angry", "The post office employees helped but were called 'crooks'", "All of the above"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho not expect from God?",
+                options: ["Help", "A letter", "Less money", "Deception"],
+                correctAnswer: 3
+            },
+            {
+                question: "According to Lencho, what mistake could God not make?",
+                options: ["In counting", "In hearing", "In seeing", "In giving"],
+                correctAnswer: 0
+            },
+            {
+                question: "Where did Lencho write his second letter?",
+                options: ["At home", "In the market", "At the post office counter", "In the field"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why did Lencho send the second letter?",
+                options: ["To ask for more money", "To express his complaint", "To accuse the post office employees", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "What was the cause of Lencho's despair?",
+                options: ["Loss of crop", "Receiving less money", "Anger at post office employees", "All of the above"],
+                correctAnswer: 0
+            },
+            {
+                question: "To whom is Lencho's devotion dedicated in the story?",
+                options: ["To his family", "To his crop", "To God", "To himself"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did Lencho say to his children when it was raining?",
+                options: ["'These aren't raindrops; these are new coins.'", "'These are hailstones!'", "'Run, come inside!'", "'Let's play!'"],
+                correctAnswer: 0
+            },
+            {
+                question: "Did Lencho react before counting the money?",
+                options: ["Yes, he was very happy", "No, he started counting immediately", "Yes, he was a bit concerned", "Yes, he was surprised"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho use to write the second letter?",
+                options: ["A pencil", "A pen", "An ink bottle", "All of the above"],
+                correctAnswer: 1
+            },
+            {
+                question: "Where was the post office located?",
+                options: ["In the city", "In the village", "On a hill", "On the outskirts of the city"],
+                correctAnswer: 1
+            },
+            {
+                question: "How did the postman handle the letter?",
+                options: ["He threw it away", "He showed it to the postmaster with amusement", "He read it carefully", "He hid it"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did the postmaster feel after reading Lencho's letter?",
+                options: ["Surprise and respect", "Anger and frustration", "Indifference", "Boredom"],
+                correctAnswer: 0
+            },
+            {
+                question: "What motivated the postmaster to help Lencho?",
+                options: ["Fear", "Greed", "Empathy", "Duty"],
+                correctAnswer: 2
+            },
+            {
+                question: "What did the post office employees do to help Lencho?",
+                options: ["They gave him money", "They wrote a letter to God", "They found Lencho", "They advised Lencho"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho think God must have done when he received the money?",
+                options: ["Sent him the full amount", "Sent him less money", "Deceived him", "Blessed him"],
+                correctAnswer: 0
+            },
+            {
+                question: "What did Lencho's faith imply about God's ability to see?",
+                options: ["Everything", "Only good things", "Only bad things", "Only the depths of the soul"],
+                correctAnswer: 0
+            },
+            {
+                question: "In the second letter, what did Lencho tell God to do about the post office employees?",
+                options: ["Thank them", "Bless them", "Punish them", "Ignore them"],
+                correctAnswer: 2
+            },
+            {
+                question: "Did Lencho ever thank God?",
+                options: ["Yes, in the first letter", "No, he only complained", "Yes, when he received the money", "Not mentioned in the story"],
+                correctAnswer: 1 // He didn't explicitly thank, but was angry about less money.
+            },
+            {
+                question: "What value does the story emphasize?",
+                options: ["Honesty", "Kindness", "Hope", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "Did Lencho ever give up?",
+                options: ["Yes", "No", "Not mentioned in the story", "Maybe"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was expected from the field?",
+                options: ["A good harvest", "Rain", "Snow", "Famine"],
+                correctAnswer: 0
+            },
+            {
+                question: "What was visible from Lencho's house?",
+                options: ["The solitary hill", "Nearby forests", "A busy road", "A city"],
+                correctAnswer: 0
+            },
+            {
+                question: "What was Lencho's attitude towards the rain?",
+                options: ["He hated it", "He was indifferent to it", "He considered it a blessing", "He loved it"],
+                correctAnswer: 2
+            },
+            {
+                question: "How did the hailstones affect the field?",
+                options: ["They cleared it", "They destroyed it", "They improved it", "They made it fertile"],
+                correctAnswer: 1
+            },
+            {
+                question: "How did Lencho's wife and children react to the crop loss?",
+                options: ["They were happy", "They were indifferent", "They were sad", "They were angry"],
+                correctAnswer: 2
+            },
+            {
+                question: "In whom did Lencho have complete faith?",
+                options: ["The government", "His neighbors", "God", "Himself"],
+                correctAnswer: 2
+            },
+            {
+                question: "What kind of help did Lencho ask God for in the letter?",
+                options: ["Emotional", "Spiritual", "Financial", "Physical"],
+                correctAnswer: 2
+            },
+            {
+                question: "What comment did the postman make about the letter?",
+                options: ["'What a joke!'", "'This is the strangest letter!'", "'I know God!'", "'Wow, what faith in God!'"],
+                correctAnswer: 3
+            },
+            {
+                question: "What was the postmaster's demeanor when he read Lencho's letter?",
+                options: ["Indifferent", "Angry", "Supportive", "Disbelieving"],
+                correctAnswer: 2
+            },
+            {
+                question: "What motivated the postmaster to help Lencho?",
+                options: ["Fear", "Greed", "Empathy", "Duty"],
+                correctAnswer: 2
+            },
+            {
+                question: "How much money did the post office employees collect for Lencho?",
+                options: ["As much as Lencho asked for", "Less than Lencho asked for", "More than Lencho asked for", "Not mentioned"],
+                correctAnswer: 1
+            },
+            {
+                question: "What did Lencho feel when he counted the money?",
+                options: ["Satisfaction", "Amazement", "Anger", "Gratitude"],
+                correctAnswer: 2
+            },
+            {
+                question: "When did Lencho write the second letter?",
+                options: ["The next day", "That same morning", "A few days later", "A week later"],
+                correctAnswer: 1
+            },
+            {
+                question: "Why did Lencho write the second letter?",
+                options: ["To ask for more money", "To express his complaint", "To accuse the post office employees", "All of the above"],
+                correctAnswer: 3
+            },
+            {
+                question: "What does Lencho's letter in the story signify?",
+                options: ["His foolishness", "His faith", "His despair", "His greed"],
+                correctAnswer: 1
+            },
+            {
+                question: "Was Lencho a realistic person?",
+                options: ["Yes", "No", "To some extent", "Not clear in the story"],
+                correctAnswer: 1
+            },
+            {
+                question: "What metaphor did Lencho use for the raindrops?",
+                options: ["Pearls", "New coins", "Diamonds", "Frozen pearls"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was the field completely covered with?",
+                options: ["Water", "Soil", "Hailstones", "Leaves"],
+                correctAnswer: 2
+            },
+            {
+                question: "Whose help did Lencho's family hope for?",
+                options: ["The government's", "Neighbors'", "God's", "The bank's"],
+                correctAnswer: 2
+            },
+            {
+                question: "Why did Lencho write a letter to God?",
+                options: ["Because he was foolish", "Because he had no other hope", "Because he was angry at God", "Because he wanted to be famous"],
+                correctAnswer: 1
+            },
+            {
+                question: "How were the post office employees towards Lencho?",
+                options: ["Arrogant", "Cruel", "Kind and helpful", "Indifferent"],
+                correctAnswer: 2
+            },
+            {
+                question: "What initiative did the postmaster take to help Lencho?",
+                options: ["Informed the authorities", "Started a charity drive", "Advised Lencho", "Ignored the letter"],
+                correctAnswer: 1
+            },
+            {
+                question: "What was Lencho's reaction upon receiving the money?",
+                options: ["He was surprised", "He was angry", "He was happy", "He was sad"],
+                correctAnswer: 1
+            },
+            {
+                question: "Where did Lencho request God not to send the money?",
+                options: ["Through the post office", "Through the bank", "Through his friends", "Directly"],
+                correctAnswer: 0
+            },
+            {
+                question: "What is the main message in the story 'A Letter to God'?",
+                options: ["Avoid greed", "The power of nature", "The power of unwavering faith", "Trust the government"],
+                correctAnswer: 2
+            },
+            {
+                question: "Lencho's letter was proof of what?",
+                options: ["His foolishness", "His faith", "His despair", "His greed"],
+                correctAnswer: 1
+            },
+            {
+                question: "What were Lencho's children doing in the fields?",
+                options: ["Playing", "Helping", "Watching", "Eating"],
+                correctAnswer: 1
+            }
+        ];
+
+        // Ensure we have exactly 100 questions for the quiz.
+        // This loop fills any remaining slots with placeholder questions if you haven't provided 100.
+        while (questions.length < 100) {
+            questions.push({
+                question: `Placeholder Question ${questions.length + 1}: What is another detail about the story?`,
+                options: ["Option A", "Option B", "Option C", "Option D"],
+                correctAnswer: Math.floor(Math.random() * 4) // Random correct answer for placeholders
+            });
+        }
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionIndex = null;
+        let answeredQuestions = 0;
+        let autoAdvanceDelay = 1500; // Delay in milliseconds before auto-advancing
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startButton = document.getElementById('start-button');
+        const questionCounter = document.getElementById('question-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        // const nextButton = document.getElementById('next-button'); // Removed as per user request
+        const finalScore = document.getElementById('final-score');
+        const totalQuestions = document.getElementById('total-questions');
+        const resultMessage = document.getElementById('result-message');
+        const restartButton = document.getElementById('restart-button');
+
+        // Event Listeners
+        startButton.addEventListener('click', startQuiz);
+        // nextButton.addEventListener('click', loadNextQuestion); // Removed as per user request
+        restartButton.addEventListener('click', restartQuiz);
+
+        /**
+         * Starts the quiz by hiding the start screen and showing the quiz screen.
+         * Initializes quiz state and loads the first question.
+         */
+        function startQuiz() {
+            startScreen.classList.remove('animated-fade-in');
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('animated-fade-in');
+
+            currentQuestionIndex = 0;
+            score = 0;
+            answeredQuestions = 0;
+            updateProgressBar();
+            scoreDisplay.textContent = `Score: ${score}`;
+            loadQuestion();
+        }
+
+        /**
+         * Loads and displays the current question and its options.
+         * Resets UI for the new question.
+         */
+        function loadQuestion() {
+            selectedOptionIndex = null;
+            // nextButton.disabled = true; // Not needed with auto-advance
+            // nextButton.classList.add('opacity-50', 'cursor-not-allowed'); // Not needed with auto-advance
+
+            if (currentQuestionIndex < questions.length) {
+                const question = questions[currentQuestionIndex];
+                questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${questions.length}`;
+                questionText.textContent = question.question;
+                questionText.classList.remove('animated-slide-in'); // Reset animation
+                void questionText.offsetWidth; // Trigger reflow
+                questionText.classList.add('animated-slide-in'); // Add animation
+
+                optionsContainer.innerHTML = ''; // Clear previous options
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add(
+                        'option-button',
+                        'w-full', 'py-3', 'px-4', 'rounded-lg', 'text-lg', 'font-medium', 'text-left',
+                        'focus:outline-none', 'border', 'border-gray-300', 'hover:border-blue-400',
+                        'animated-slide-in' // Add animation
+                    );
+                    button.style.animationDelay = `${index * 0.05}s`; // Stagger animation
+                    button.dataset.index = index;
+                    button.addEventListener('click', () => selectOption(index, button));
+                    optionsContainer.appendChild(button);
+                });
+            } else {
+                showResultScreen();
+            }
+        }
+
+        /**
+         * Handles option selection by the user.
+         * Highlights the selected option and automatically advances to the next question after a delay.
+         * @param {number} index - The index of the selected option.
+         * @param {HTMLButtonElement} selectedButton - The button element that was selected.
+         */
+        function selectOption(index, selectedButton) {
+            // Remove 'selected' class from all options first
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'incorrect');
+                btn.disabled = true; // Disable all options after selection
+            });
+
+            selectedOptionIndex = index;
+            selectedButton.classList.add('selected');
+
+            // Check if the selected answer is correct
+            const currentQuestion = questions[currentQuestionIndex];
+            const isCorrect = selectedOptionIndex === currentQuestion.correctAnswer;
+
+            if (isCorrect) {
+                score++;
+                selectedButton.classList.add('correct');
+            } else {
+                selectedButton.classList.add('incorrect');
+                // Also highlight the correct answer in green
+                const correctOptionButton = optionsContainer.querySelector(`[data-index="${currentQuestion.correctAnswer}"]`);
+                if (correctOptionButton) {
+                    correctOptionButton.classList.add('correct');
+                }
+            }
+
+            scoreDisplay.textContent = `Score: ${score}`;
+            answeredQuestions++;
+            updateProgressBar();
+
+            // Auto-advance to the next question after a delay
+            setTimeout(() => {
+                loadNextQuestion();
+            }, autoAdvanceDelay);
+        }
+
+        /**
+         * Updates the progress bar based on the number of answered questions.
+         */
+        function updateProgressBar() {
+            const progress = (answeredQuestions / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        /**
+         * Loads the next question or shows the result screen if all questions are answered.
+         */
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        /**
+         * Displays the result screen with the final score and a message.
+         * Triggers a confetti animation for good scores.
+         */
+        function showResultScreen() {
+            quizScreen.classList.remove('animated-fade-in');
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('animated-fade-in');
+
+            finalScore.textContent = score;
+            totalQuestions.textContent = questions.length;
+
+            let message = '';
+            const percentage = (score / questions.length) * 100;
+
+            if (percentage === 100) {
+                message = "Outstanding! You're a true expert!";
+                triggerConfetti();
+            } else if (percentage >= 80) {
+                message = "Excellent! You have a great understanding!";
+                triggerConfetti();
+            } else if (percentage >= 50) {
+                message = "Good job! Keep practicing to improve!";
+            }
+            else if (percentage >= 20) {
+                message = "You're getting there! Keep learning and practicing.";
+            }
+            else {
+                message = "Keep learning! You'll get there with more practice!";
+            }
+            resultMessage.textContent = message;
+        }
+
+        /**
+         * Triggers a fun confetti animation.
+         */
+        function triggerConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+            const quizContainer = document.getElementById('quiz-container');
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.top = `${Math.random() * -20}%`; // Start above the screen
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = `${2 + Math.random() * 1}s`; // Vary duration
+                confetti.style.opacity = 1;
+                quizContainer.appendChild(confetti);
+
+                // Remove confetti after animation to prevent DOM clutter
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+
+        /**
+         * Restarts the quiz by resetting all states and showing the start screen.
+         */
+        function restartQuiz() {
+            resultScreen.classList.remove('animated-fade-in');
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            startScreen.classList.add('animated-fade-in');
+        }
+
+        // Initialize progress bar on page load
+        updateProgressBar();
+    </script>
+</body>
+</html>
+
